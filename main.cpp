@@ -17,7 +17,6 @@
 int main(int argc, char *argv[]){
 
 	Gpio gpio_f1c100s;
-	Pwm pwm_f1c100s;
 
 	int PE5 = -1;//PE5 = 32*4 + 5
 	int PA2 = -1;//PE5 = 32*0 + 2
