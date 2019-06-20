@@ -20,12 +20,15 @@ int main(int argc, char *argv[]){
 	Pwm pwm_f1c100s;
 
 	int PE5 = -1;//PE5 = 32*4 + 5
+	int PA2 = -1;//PE5 = 32*0 + 2
 	gpio_f1c100s.gpio_init(&PE5 , 128 + 5);
+	gpio_f1c100s.gpio_init(&PA2 , 2);
 
 	bool status = 0;
 	while(1){
 		status = !status;
 		status == 0 ? write(PE5,"0",1) : write(PE5,"1",1);
+		status == 0 ? write(PA2,"1",1) : write(PA2,"0",1);
 		sleep(1);
 	}
 

@@ -20,6 +20,9 @@ $(OBJS):%.o:%.cpp
 $(TARGET1):$(OBJPATH)
 	$(CXX) -o $@ $(OBJPATH)/*.o $(LDFLAGS)
 
+install:
+	../file/xag_tcpscs 169.254.140.55 5555 $(TARGET1)
+
 clean:
 	-rm $(OBJPATH)/*.o
 	-rm $(TARGET1)
