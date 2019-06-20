@@ -63,7 +63,7 @@ int Gpio::close_gpio(int *fd){
     return 0;
 }
 
-int Gpio::gpio_init(int *fd, int pin){
+int Gpio::gpio_init(int *fd, int pin, bool io){
     FILE* set_export = NULL;
     sprintf(setpin,"%d",pin);
     set_export = fopen ("/sys/class/gpio/export", "w");
@@ -83,7 +83,11 @@ int Gpio::gpio_init(int *fd, int pin){
         return 2;
     }
     else {
-        fprintf(set_export,"out");  
+        if(io){
+            fprintf(set_export,"out");
+        }else{
+            fprintf(set_export,"in");
+        }
     }
     fclose(set_export);
 

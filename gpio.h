@@ -10,7 +10,7 @@ public:
     int set_gpio_in(int pin);
     int open_gpio(int *fd , int pin);
     int close_gpio(int *fd);
-    int gpio_init(int *fd, int pin);
+    int gpio_init(int *fd, int pin, bool io);
 
 private:
     char setpin[64] = {0};
