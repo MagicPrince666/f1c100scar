@@ -18,10 +18,8 @@
 Gpio gpio_moto;
 Pwm pwm_f1c100s;
 
-int ena = -1;
-int enb = -1;
-
-void Moto_Init(void){
+void Moto::Moto_Init(void){
+    
     gpio_moto.gpio_init(&ena , 128 + 3, 1);//PE3
 	gpio_moto.gpio_init(&enb , 128 + 4, 1);//PE4
     write(ena,"1",1);
@@ -29,8 +27,8 @@ void Moto_Init(void){
 
     pwm_f1c100s.setup_pwm(0); //pwm0
     pwm_f1c100s.pwm_polarity(0, 1);
-    pwm_f1c100s.pwm_period(0, 20000000);
-    pwm_f1c100s.pwm_duty_cycle(0, 1500000);
+    pwm_f1c100s.pwm_period(0, 1000000);
+    pwm_f1c100s.pwm_duty_cycle(0, 500000);
     pwm_f1c100s.pwm_enable(0);
 
     pwm_f1c100s.setup_pwm(1); //pwm1
@@ -39,4 +37,30 @@ void Moto_Init(void){
     pwm_f1c100s.pwm_duty_cycle(1, 1500000);
     pwm_f1c100s.pwm_enable(1);
 
+}
+
+int Moto::go(int speed){
+    write(ena,"1",1);
+    write(enb,"0",1);
+    pwm_f1c100s.pwm_duty_cycle(0, speed);
+    return 0;
+}
+
+int Moto::back(int speed){
+    write(ena,"0",1);
+    write(enb,"1",1);
+    pwm_f1c100s.pwm_duty_cycle(0, speed);
+    return 0;
+}
+
+int Moto::stop(void){
+    write(ena,"1",1);
+    write(enb,"1",1);
+    pwm_f1c100s.pwm_duty_cycle(0, 0);
+    return 0;
+}
+
+int Moto::servo(int angle){
+    pwm_f1c100s.pwm_duty_cycle(1, angle);
+    return 0;
 }
