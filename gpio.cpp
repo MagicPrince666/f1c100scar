@@ -65,13 +65,13 @@ int Gpio::close_gpio(int *fd){
 
 int Gpio::gpio_init(int *fd, int pin, bool io){
     FILE* set_export = NULL;
-    sprintf(setpin,"%d",pin);
     set_export = fopen ("/sys/class/gpio/export", "w");
     if(set_export == NULL){
         printf ("Can't open /sys/class/gpio/export!\n");
         return 1;
     }
     else {
+        sprintf(setpin,"%d",pin);
         fprintf(set_export,setpin);
     }
     fclose(set_export);
