@@ -37,7 +37,7 @@ int main(int argc, char *argv[]){
     f1c100s_gpio_set_pin_value(2, 1);
     f1c100s_gpio_set_pin_value(128+5, 1);
 */
-	//bool status = 0;
+	bool status = 0;
 
 	u_int8_t key = 0;
 	u_int8_t l_lx = 0,l_ly = 0,l_rx = 0,l_ry = 0;
@@ -47,6 +47,8 @@ int main(int argc, char *argv[]){
 	PS2_SetInit();
 
 	Moto moto;
+	Gpio f1c100s;
+	int PA2 = f1c100s.gpio_init(2, 1);
 
 	signal(SIGINT, sigint_handler);//信号处理
 
@@ -113,8 +115,8 @@ int main(int argc, char *argv[]){
 			printf("RY = %d\r\n",ry);
 		}
 
-		//status = !status;
-		//Gpio::light(0,status);
+		status = !status;
+		f1c100s.set_gpio_value(PA2, status);
 		usleep(200000);
 	}
 

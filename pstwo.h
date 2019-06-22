@@ -3,11 +3,6 @@
 
 #include <sys/types.h>
 
-extern int ps2_ack;
-extern int ps2_data;
-extern int ps2_cmd;
-extern int ps2_att;
-extern int ps2_clk;
 
 //#define PS2_JOYPAD_ACK        gpio_get_value(F1C100S_GPIOA0)
 //#define PS2_JOYPAD_DATA       gpio_get_value(F1C100S_GPIOE10)     //E10 MISO
