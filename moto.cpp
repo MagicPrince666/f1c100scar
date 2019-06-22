@@ -20,8 +20,8 @@ Pwm pwm_f1c100s;
 
 Moto::Moto(void){
     
-    gpio_init(&ena , 128 + 3, 1);//PE3
-	gpio_init(&enb , 128 + 4, 1);//PE4
+    gpio_init(&ena , 6*32 + 5, 1);//PG5
+	gpio_init(&enb , 6*32 + 6, 1);//PG6
     write(ena,"1",1);
     write(enb,"1",1);
 

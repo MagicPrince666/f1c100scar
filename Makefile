@@ -1,4 +1,4 @@
-CXX = arm-f1c100s-linux-uclibcgnueabi-g++
+CXX = arm-v3s-linux-uclibcgnueabihf-g++
 TARGET1	= prince
 
 DIR		= .

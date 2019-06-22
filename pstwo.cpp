@@ -36,7 +36,6 @@ u_int16_t MASK[]={
     PSB_PINK
 };	//
 
-int ps2_ack = -1;
 int ps2_data = -1;
 int ps2_cmd = -1;
 int ps2_att = -1;
@@ -46,12 +45,10 @@ Gpio gpio_ps2;
 
 void PS2_Init(void)
 {
-	gpio_ps2.gpio_init(&ps2_ack , 3, 0);//PA3
-	gpio_ps2.gpio_init(&ps2_data , 128 + 10, 0);//PE10 138
-	gpio_ps2.gpio_init(&ps2_cmd , 128 + 8, 1);//PE8 136
-	gpio_ps2.gpio_init(&ps2_att , 128 + 7, 1);//PE7 135
-	gpio_ps2.gpio_init(&ps2_clk , 128 + 9, 1);//PE9 137
-	write(ps2_ack,"0",1);
+	gpio_ps2.gpio_init(&ps2_data , 6*32, 0);	//PG0
+	gpio_ps2.gpio_init(&ps2_cmd , 6*32 + 1, 1);	//PG1
+	gpio_ps2.gpio_init(&ps2_att , 6*32 + 2, 1);	//PG2
+	gpio_ps2.gpio_init(&ps2_clk , 6*32 + 3, 1);	//PG3
 	write(ps2_data,"1",1);
 	write(ps2_cmd,"0",1);
 	write(ps2_att,"1",1);
