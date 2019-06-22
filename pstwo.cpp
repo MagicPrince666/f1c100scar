@@ -36,23 +36,24 @@ u_int16_t MASK[]={
     PSB_PINK
 };	//
 
-int ps2_data = -1;
-int ps2_cmd = -1;
-int ps2_att = -1;
-int ps2_clk = -1;
+FILE *ps2_data = NULL;
+FILE *ps2_cmd = NULL;
+FILE *ps2_att = NULL;
+FILE *ps2_clk = NULL;
 
 Gpio gpio_ps2;
 
 void PS2_Init(void)
 {
-	gpio_ps2.gpio_init(&ps2_data , 6*32, 0);	//PG0 192
-	gpio_ps2.gpio_init(&ps2_cmd , 6*32 + 1, 1);	//PG1 193
-	gpio_ps2.gpio_init(&ps2_att , 6*32 + 2, 1);	//PG2 194
-	gpio_ps2.gpio_init(&ps2_clk , 6*32 + 3, 1);	//PG3 195
-	write(ps2_data,"1",1);
-	write(ps2_cmd,"0",1);
-	write(ps2_att,"1",1);
-	write(ps2_clk,"1",1);
+	ps2_data = gpio_ps2.gpio_init(6*32, 0);	//PG0 192
+	ps2_cmd = gpio_ps2.gpio_init(6*32 + 1, 1);	//PG1 193
+	ps2_att = gpio_ps2.gpio_init(6*32 + 2, 1);	//PG2 194
+	ps2_clk = gpio_ps2.gpio_init(6*32 + 3, 1);	//PG3 195
+	fprintf(ps2_data, "1");
+	fprintf(ps2_cmd, "0");
+	fprintf(ps2_att, "1");
+	fprintf(ps2_clk, "1");
+
 	printf("init PS2 gpio\n");							  
 }
 
@@ -65,18 +66,19 @@ void PS2_Cmd(u_int8_t CMD)
 	for(ref = 0x01; ref < 0x0100; ref <<= 1)
 	{
 		if(ref&CMD){
-			write(ps2_cmd,"1",1);                   //
+			fprintf(ps2_cmd, "1");                   //
 		} else {
-			write(ps2_cmd,"0",1);
+			fprintf(ps2_cmd, "0");
 		}
 
-		write(ps2_clk,"1",1);                        //
+		fprintf(ps2_clk,"1");                        //
 		delay_us(5);
-		write(ps2_clk,"0",1);
+		fprintf(ps2_clk,"0");
 		delay_us(5);
-		write(ps2_clk,"1",1);
-	
-		read(ps2_data, &data, 1);
+		fprintf(ps2_clk,"1");
+
+		fseek(ps2_data, 0 , 0);
+		fread(&data , 1, 1, ps2_data);
 		if(data == '1')
 			Data[1] = ref|Data[1];
 	}
@@ -86,10 +88,10 @@ void PS2_Cmd(u_int8_t CMD)
 
 u_int8_t PS2_RedLight(void)
 {
-	write(ps2_att,"0",1);
+	fprintf(ps2_att, "0");
 	PS2_Cmd(Comd[0]);  
 	PS2_Cmd(Comd[1]);  
-	write(ps2_att,"1",1);
+	fprintf(ps2_att, "1");
 	if( Data[1] == 0X73)   return 0 ;
 	else return 1;
 
@@ -101,7 +103,7 @@ void PS2_ReadData(void)
 	volatile u_int16_t ref=0x01;
 	char data;
 
-	write(ps2_att,"0",1);
+	fprintf(ps2_att, "%0");
 
 	PS2_Cmd(Comd[0]);  
 	PS2_Cmd(Comd[1]);  
@@ -110,20 +112,22 @@ void PS2_ReadData(void)
 	{
 		for(ref=0x01;ref<0x100;ref<<=1)
 		{
-			write(ps2_clk,"1",1);
+			fprintf(ps2_clk,"1");
 			delay_us(5);
-			write(ps2_clk,"0",1);
+			fprintf(ps2_clk,"0");
 			delay_us(5);
-			write(ps2_clk,"1",1);
+			fprintf(ps2_clk,"1");
 			
-			read(ps2_data, &data, 1);
+			//read(ps2_data, &data, 1);
+			fseek(ps2_data, 0 , 0);
+			fread(&data , 1, 1, ps2_data);
 			//printf("ps2 data = %d\n",data);
 			if(data == '1')
 		      Data[byte] = ref|Data[byte];
 		}
         delay_us(16);
 	}
-	write(ps2_att,"1",1);	
+	fprintf(ps2_att, "1");	
 }
 
 
@@ -160,7 +164,7 @@ void PS2_ClearData()
 
 void PS2_Vibration(u_int8_t motor1, u_int8_t motor2)
 {
-	write(ps2_att,"0",1);
+	fprintf(ps2_att, "0");
 	delay_us(16);
   	PS2_Cmd(0x01);  //
 	PS2_Cmd(0x42);  //
@@ -171,26 +175,26 @@ void PS2_Vibration(u_int8_t motor1, u_int8_t motor2)
 	PS2_Cmd(0X00);
 	PS2_Cmd(0X00);
 	PS2_Cmd(0X00);
-	write(ps2_att,"1",1);
+	fprintf(ps2_att, "1");
 	delay_us(16);  
 }
 //short poll
 void PS2_ShortPoll(void)
 {
-	write(ps2_att,"0",1);
+	fprintf(ps2_att,"0");
 	delay_us(16);
 	PS2_Cmd(0x01);  
 	PS2_Cmd(0x42);  
 	PS2_Cmd(0X00);
 	PS2_Cmd(0x00);
 	PS2_Cmd(0x00);
-	write(ps2_att,"1",1);
+	fprintf(ps2_att,"1");
 	delay_us(16);	
 }
 
 void PS2_EnterConfing(void)
 {
-  	write(ps2_att,"0",1);
+  	fprintf(ps2_att,"0");
 	delay_us(16);
 	PS2_Cmd(0x01);  
 	PS2_Cmd(0x43);  
@@ -201,14 +205,14 @@ void PS2_EnterConfing(void)
 	PS2_Cmd(0X00);
 	PS2_Cmd(0X00);
 	PS2_Cmd(0X00);
-	write(ps2_att,"1",1);
+	fprintf(ps2_att,"1");
 	delay_us(16);
 }
 
 
 void PS2_TurnOnAnalogMode(void)
 {
-	write(ps2_att,"0",1);
+	fprintf(ps2_att,"0");
 	PS2_Cmd(0x01);  
 	PS2_Cmd(0x44);  
 	PS2_Cmd(0X00);
@@ -219,26 +223,26 @@ void PS2_TurnOnAnalogMode(void)
 	PS2_Cmd(0X00);
 	PS2_Cmd(0X00);
 	PS2_Cmd(0X00);
-	write(ps2_att,"1",1);
+	fprintf(ps2_att,"1");
 	delay_us(16);
 }
 
 void PS2_VibrationMode(void)
 {
-	write(ps2_att,"0",1);
+	fprintf(ps2_att,"0");
 	delay_us(16);
 	PS2_Cmd(0x01);  
 	PS2_Cmd(0x4D);  
 	PS2_Cmd(0X00);
 	PS2_Cmd(0x00);
 	PS2_Cmd(0X01);
-	write(ps2_att,"1",1);
+	fprintf(ps2_att,"1");
 	delay_us(16);	
 }
 //
 void PS2_ExitConfing(void)
 {
-    write(ps2_att,"0",1);
+    fprintf(ps2_att,"0");
 	delay_us(16);
 	PS2_Cmd(0x01);  
 	PS2_Cmd(0x43);  
@@ -249,7 +253,7 @@ void PS2_ExitConfing(void)
 	PS2_Cmd(0x5A);
 	PS2_Cmd(0x5A);
 	PS2_Cmd(0x5A);
-	write(ps2_att,"1",1);
+	fprintf(ps2_att,"1");
 	delay_us(16);
 }
 

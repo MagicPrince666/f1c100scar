@@ -74,7 +74,7 @@ int Gpio::close_gpio(int *fd){
     return 0;
 }
 
-int Gpio::gpio_init(int *fd, int pin, bool io){
+FILE* Gpio::gpio_init(int pin, bool io){
     FILE* set_export = NULL;
 
     sprintf(setpin, "/sys/class/gpio/gpio%d/direction", pin);
@@ -82,7 +82,7 @@ int Gpio::gpio_init(int *fd, int pin, bool io){
         set_export = fopen ("/sys/class/gpio/export", "w");
         if(set_export == NULL){
             printf ("Can't open /sys/class/gpio/export!\n");
-            return 1;
+            //return 1;
         }
         else {
             sprintf(setpin,"%d",pin);
@@ -94,7 +94,7 @@ int Gpio::gpio_init(int *fd, int pin, bool io){
     set_export = fopen (setpin, "w");
     if(set_export == NULL){
         printf ("open %s error\n",setpin);
-        return 2;
+        //return 2;
     }
     else {
         if(io){
@@ -105,6 +105,11 @@ int Gpio::gpio_init(int *fd, int pin, bool io){
     }
     fclose(set_export);
 
-    open_gpio(fd, pin);
-    return 0;
+    sprintf(setpin,"/sys/class/gpio/gpio%d/value",pin);
+    set_export = fopen (setpin, "rw");
+    if(set_export== NULL){
+        printf ("open %s error\n",setpin);
+        //return 3;  
+    }
+    return set_export;
 }
