@@ -12,7 +12,9 @@ public:
     int set_gpio_in(int pin);
     int open_gpio(int *fd , int pin);
     int close_gpio(int *fd);
-    FILE *gpio_init(int pin, bool io);
+    int gpio_init(int pin, bool io);
+    int set_gpio_value(int gpio, int value);
+    int get_gpio_value(int gpio);
 
 private:
     char setpin[64] = {0};

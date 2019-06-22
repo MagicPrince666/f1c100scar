@@ -20,10 +20,13 @@ Pwm pwm_f1c100s;
 
 Moto::Moto(void){
     
-    gpio_init(&ena , 6*32 + 4, 1);//PG5 196
-	gpio_init(&enb , 6*32 + 5, 1);//PG6 197
-    write(ena,"1",1);
-    write(enb,"1",1);
+    ena = gpio_init(6*32 + 4, 1);//PG4 196
+	enb = gpio_init(6*32 + 5, 1);//PG5 197
+    
+    fprintf(ena, "1");
+    fprintf(enb, "1");
+
+    printf("init ina an inb\n");
 
     pwm_f1c100s.setup_pwm(0); //pwm0
     pwm_f1c100s.pwm_polarity(0, 1);
@@ -40,13 +43,13 @@ Moto::Moto(void){
 }
 
 Moto::~Moto(void){
-    close(ena);
-    close(enb);
-    printf("close gpio\n");
+    fclose(ena);
+    fclose(enb);
+    printf("fclose gpio\n");
     //printf("disable pwm\n");
 }
 
-int Moto::gpio_init(int *fd, int pin, bool io){
+FILE *Moto::gpio_init(int pin, bool io){
     FILE* set_export = NULL;
 
     sprintf(setpin, "/sys/class/gpio/gpio%d/direction", pin);
@@ -54,7 +57,7 @@ int Moto::gpio_init(int *fd, int pin, bool io){
         set_export = fopen ("/sys/class/gpio/export", "w");
         if(set_export == NULL){
             printf ("Can't open /sys/class/gpio/export!\n");
-            return 1;
+            //return 1;
         }
         else {
             sprintf(setpin,"%d",pin);
@@ -66,7 +69,7 @@ int Moto::gpio_init(int *fd, int pin, bool io){
     set_export = fopen (setpin, "w");
     if(set_export == NULL){
         printf ("open %s error\n",setpin);
-        return 2;
+        //return 2;
     }
     else {
         if(io){
@@ -78,32 +81,32 @@ int Moto::gpio_init(int *fd, int pin, bool io){
     fclose(set_export);
 
     sprintf(setpin,"/sys/class/gpio/gpio%d/value",pin);
-    *fd = open (setpin, O_RDWR);
-    if(*fd <= 0){
-        printf ("can not open %s\n",setpin);
-        return 3;
+    set_export = fopen (setpin, "rw");
+    if(set_export == NULL){
+        printf ("open %s error\n",setpin);
+        //return 3;  
     }
 
-    return 0;
+    return set_export;
 }
 
 int Moto::go(int speed){
-    write(ena,"1",1);
-    write(enb,"0",1);
+    fprintf(ena, "1");
+    fprintf(enb, "0");
     pwm_f1c100s.pwm_duty_cycle(0, speed);
     return 0;
 }
 
 int Moto::back(int speed){
-    write(ena,"0",1);
-    write(enb,"1",1);
+    fprintf(ena,"0");
+    fprintf(enb,"1");
     pwm_f1c100s.pwm_duty_cycle(0, speed);
     return 0;
 }
 
 int Moto::stop(void){
-    write(ena,"1",1);
-    write(enb,"1",1);
+    fprintf(ena,"1");
+    fprintf(enb,"1");
     pwm_f1c100s.pwm_duty_cycle(0, 0);
     return 0;
 }

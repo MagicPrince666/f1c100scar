@@ -74,7 +74,7 @@ int Gpio::close_gpio(int *fd){
     return 0;
 }
 
-FILE* Gpio::gpio_init(int pin, bool io){
+int Gpio::gpio_init(int pin, bool io){
     FILE* set_export = NULL;
 
     sprintf(setpin, "/sys/class/gpio/gpio%d/direction", pin);
@@ -82,7 +82,7 @@ FILE* Gpio::gpio_init(int pin, bool io){
         set_export = fopen ("/sys/class/gpio/export", "w");
         if(set_export == NULL){
             printf ("Can't open /sys/class/gpio/export!\n");
-            //return 1;
+            return -1;
         }
         else {
             sprintf(setpin,"%d",pin);
@@ -94,7 +94,7 @@ FILE* Gpio::gpio_init(int pin, bool io){
     set_export = fopen (setpin, "w");
     if(set_export == NULL){
         printf ("open %s error\n",setpin);
-        //return 2;
+        return -2;
     }
     else {
         if(io){
@@ -105,11 +105,47 @@ FILE* Gpio::gpio_init(int pin, bool io){
     }
     fclose(set_export);
 
-    sprintf(setpin,"/sys/class/gpio/gpio%d/value",pin);
-    set_export = fopen (setpin, "rw");
-    if(set_export== NULL){
-        printf ("open %s error\n",setpin);
-        //return 3;  
-    }
-    return set_export;
+    return pin;
+}
+
+int Gpio::set_gpio_value(int gpio, int value)
+{
+	FILE *p = NULL;
+
+	sprintf(setpin, "/sys/class/gpio/gpio%d/value", gpio);
+
+	p = fopen(setpin, "w");
+
+	if(p != NULL){
+		fprintf(p, "%d", value);
+		fclose(p);
+	}
+
+	return 0;
+}
+
+int Gpio::get_gpio_value(int gpio)
+{
+	FILE *p = NULL;
+    char data = 0;
+	int value = 1;
+
+	sprintf(setpin, "/sys/class/gpio/gpio%d/value", gpio);
+	p = fopen(setpin, "r");
+
+	if(p != NULL){
+		fseek(p , 0 , 0);
+		fread(&data , 1, 1 ,p);
+
+		if(data == '0'){
+			value = 0;
+		}else{
+			value = 1;
+		}
+		fclose(p);
+	} else {
+		value = -1;
+	}
+	
+	return value;
 }

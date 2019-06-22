@@ -36,10 +36,10 @@ u_int16_t MASK[]={
     PSB_PINK
 };	//
 
-FILE *ps2_data = NULL;
-FILE *ps2_cmd = NULL;
-FILE *ps2_att = NULL;
-FILE *ps2_clk = NULL;
+int ps2_data = -1;
+int ps2_cmd = -1;
+int ps2_att = -1;
+int ps2_clk = -1;
 
 Gpio gpio_ps2;
 
@@ -49,37 +49,33 @@ void PS2_Init(void)
 	ps2_cmd = gpio_ps2.gpio_init(6*32 + 1, 1);	//PG1 193
 	ps2_att = gpio_ps2.gpio_init(6*32 + 2, 1);	//PG2 194
 	ps2_clk = gpio_ps2.gpio_init(6*32 + 3, 1);	//PG3 195
-	fprintf(ps2_data, "1");
-	fprintf(ps2_cmd, "0");
-	fprintf(ps2_att, "1");
-	fprintf(ps2_clk, "1");
+
+	gpio_ps2.set_gpio_value(ps2_data, 1);
+	gpio_ps2.set_gpio_value(ps2_cmd, 0);
+	gpio_ps2.set_gpio_value(ps2_att, 1);
+	gpio_ps2.set_gpio_value(ps2_clk, 1);
 
 	printf("init PS2 gpio\n");							  
 }
-
-//
 void PS2_Cmd(u_int8_t CMD)
 {
 	volatile u_int16_t ref = 0x01;
 	Data[1] = 0;
-	int data;
 	for(ref = 0x01; ref < 0x0100; ref <<= 1)
 	{
 		if(ref&CMD){
-			fprintf(ps2_cmd, "1");                   //
+			gpio_ps2.set_gpio_value(ps2_cmd, 1);                   //
 		} else {
-			fprintf(ps2_cmd, "0");
+			gpio_ps2.set_gpio_value(ps2_cmd, 0);
 		}
 
-		fprintf(ps2_clk,"1");                        //
+		gpio_ps2.set_gpio_value(ps2_clk,1);                        //
 		delay_us(5);
-		fprintf(ps2_clk,"0");
+		gpio_ps2.set_gpio_value(ps2_clk,0);
 		delay_us(5);
-		fprintf(ps2_clk,"1");
+		gpio_ps2.set_gpio_value(ps2_clk,1);
 
-		fseek(ps2_data, 0 , 0);
-		fread(&data , 1, 1, ps2_data);
-		if(data == '1')
+		if(gpio_ps2.get_gpio_value(ps2_data))
 			Data[1] = ref|Data[1];
 	}
 	delay_us(16);
@@ -88,10 +84,10 @@ void PS2_Cmd(u_int8_t CMD)
 
 u_int8_t PS2_RedLight(void)
 {
-	fprintf(ps2_att, "0");
+	gpio_ps2.set_gpio_value(ps2_att, 0);
 	PS2_Cmd(Comd[0]);  
 	PS2_Cmd(Comd[1]);  
-	fprintf(ps2_att, "1");
+	gpio_ps2.set_gpio_value(ps2_att, 1);
 	if( Data[1] == 0X73)   return 0 ;
 	else return 1;
 
@@ -101,9 +97,8 @@ void PS2_ReadData(void)
 {
 	volatile u_int8_t byte=0;
 	volatile u_int16_t ref=0x01;
-	char data;
 
-	fprintf(ps2_att, "%0");
+	gpio_ps2.set_gpio_value(ps2_att, 0);
 
 	PS2_Cmd(Comd[0]);  
 	PS2_Cmd(Comd[1]);  
@@ -112,22 +107,18 @@ void PS2_ReadData(void)
 	{
 		for(ref=0x01;ref<0x100;ref<<=1)
 		{
-			fprintf(ps2_clk,"1");
+			gpio_ps2.set_gpio_value(ps2_clk,1);
 			delay_us(5);
-			fprintf(ps2_clk,"0");
+			gpio_ps2.set_gpio_value(ps2_clk,0);
 			delay_us(5);
-			fprintf(ps2_clk,"1");
+			gpio_ps2.set_gpio_value(ps2_clk,1);
 			
-			//read(ps2_data, &data, 1);
-			fseek(ps2_data, 0 , 0);
-			fread(&data , 1, 1, ps2_data);
-			//printf("ps2 data = %d\n",data);
-			if(data == '1')
+			if(gpio_ps2.get_gpio_value(ps2_data))
 		      Data[byte] = ref|Data[byte];
 		}
         delay_us(16);
 	}
-	fprintf(ps2_att, "1");	
+	gpio_ps2.set_gpio_value(ps2_att, 1);	
 }
 
 
@@ -164,7 +155,7 @@ void PS2_ClearData()
 
 void PS2_Vibration(u_int8_t motor1, u_int8_t motor2)
 {
-	fprintf(ps2_att, "0");
+	gpio_ps2.set_gpio_value(ps2_att, 0);
 	delay_us(16);
   	PS2_Cmd(0x01);  //
 	PS2_Cmd(0x42);  //
@@ -175,26 +166,26 @@ void PS2_Vibration(u_int8_t motor1, u_int8_t motor2)
 	PS2_Cmd(0X00);
 	PS2_Cmd(0X00);
 	PS2_Cmd(0X00);
-	fprintf(ps2_att, "1");
+	gpio_ps2.set_gpio_value(ps2_att, 1);
 	delay_us(16);  
 }
 //short poll
 void PS2_ShortPoll(void)
 {
-	fprintf(ps2_att,"0");
+	gpio_ps2.set_gpio_value(ps2_att,0);
 	delay_us(16);
 	PS2_Cmd(0x01);  
 	PS2_Cmd(0x42);  
 	PS2_Cmd(0X00);
 	PS2_Cmd(0x00);
 	PS2_Cmd(0x00);
-	fprintf(ps2_att,"1");
+	gpio_ps2.set_gpio_value(ps2_att,1);
 	delay_us(16);	
 }
 
 void PS2_EnterConfing(void)
 {
-  	fprintf(ps2_att,"0");
+  	gpio_ps2.set_gpio_value(ps2_att,0);
 	delay_us(16);
 	PS2_Cmd(0x01);  
 	PS2_Cmd(0x43);  
@@ -205,14 +196,14 @@ void PS2_EnterConfing(void)
 	PS2_Cmd(0X00);
 	PS2_Cmd(0X00);
 	PS2_Cmd(0X00);
-	fprintf(ps2_att,"1");
+	gpio_ps2.set_gpio_value(ps2_att,1);
 	delay_us(16);
 }
 
 
 void PS2_TurnOnAnalogMode(void)
 {
-	fprintf(ps2_att,"0");
+	gpio_ps2.set_gpio_value(ps2_att,0);
 	PS2_Cmd(0x01);  
 	PS2_Cmd(0x44);  
 	PS2_Cmd(0X00);
@@ -223,26 +214,26 @@ void PS2_TurnOnAnalogMode(void)
 	PS2_Cmd(0X00);
 	PS2_Cmd(0X00);
 	PS2_Cmd(0X00);
-	fprintf(ps2_att,"1");
+	gpio_ps2.set_gpio_value(ps2_att,1);
 	delay_us(16);
 }
 
 void PS2_VibrationMode(void)
 {
-	fprintf(ps2_att,"0");
+	gpio_ps2.set_gpio_value(ps2_att,0);
 	delay_us(16);
 	PS2_Cmd(0x01);  
 	PS2_Cmd(0x4D);  
 	PS2_Cmd(0X00);
 	PS2_Cmd(0x00);
 	PS2_Cmd(0X01);
-	fprintf(ps2_att,"1");
+	gpio_ps2.set_gpio_value(ps2_att,1);
 	delay_us(16);	
 }
 //
 void PS2_ExitConfing(void)
 {
-    fprintf(ps2_att,"0");
+    gpio_ps2.set_gpio_value(ps2_att,0);
 	delay_us(16);
 	PS2_Cmd(0x01);  
 	PS2_Cmd(0x43);  
@@ -253,7 +244,7 @@ void PS2_ExitConfing(void)
 	PS2_Cmd(0x5A);
 	PS2_Cmd(0x5A);
 	PS2_Cmd(0x5A);
-	fprintf(ps2_att,"1");
+	gpio_ps2.set_gpio_value(ps2_att,1);
 	delay_us(16);
 }
 

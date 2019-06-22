@@ -39,6 +39,8 @@ int main(int argc, char *argv[]){
 
 	Moto moto;
 
+	cout << "--- start ---" << endl;
+
 	signal(SIGINT, sigint_handler);//信号处理
 
 	while(1){

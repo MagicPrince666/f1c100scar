@@ -10,12 +10,12 @@ public:
    int back(int speed);
    int stop(void);
    int servo(int angle);
-   int gpio_init(int *fd, int pin, bool io);
+   FILE *gpio_init(int pin, bool io);
 
 private:
     char setpin[64] = {0};
-    int ena = -1;
-    int enb = -1;
+    FILE* ena = NULL;
+    FILE* enb = NULL;
 
 };
 
