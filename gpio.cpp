@@ -9,9 +9,32 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <signal.h>
+#include <unistd.h>
 #include <iostream>
 
 #include "gpio.h"
+
+Gpio::Gpio(){
+	gpio_init(&PE5 , 128 + 5, 1);
+	gpio_init(&PA2 , 2, 1);
+	write(PE5,"0",1);
+	write(PA2,"0",1);
+    printf("init user led\n");
+}
+
+Gpio::~Gpio(){
+    close_gpio(&PE5);
+    close_gpio(&PA2);
+    printf("close user led\n");
+}
+
+int Gpio::light(int leds, bool status){
+    switch(leds){
+        case 0:status == 0 ? write(PE5,"0",1) : write(PE5,"1",1);break;
+        case 1:status == 0 ? write(PA2,"1",1) : write(PA2,"0",1);break;
+    }
+    return 0;
+}
 
 int Gpio::setup_gpio(int pin){
     FILE* set_export = NULL;
@@ -65,18 +88,21 @@ int Gpio::close_gpio(int *fd){
 
 int Gpio::gpio_init(int *fd, int pin, bool io){
     FILE* set_export = NULL;
-    set_export = fopen ("/sys/class/gpio/export", "w");
-    if(set_export == NULL){
-        printf ("Can't open /sys/class/gpio/export!\n");
-        return 1;
-    }
-    else {
-        sprintf(setpin,"%d",pin);
-        fprintf(set_export,setpin);
-    }
-    fclose(set_export);
 
     sprintf(setpin, "/sys/class/gpio/gpio%d/direction", pin);
+    if((access(setpin, F_OK)) == -1){//need creat 
+        set_export = fopen ("/sys/class/gpio/export", "w");
+        if(set_export == NULL){
+            printf ("Can't open /sys/class/gpio/export!\n");
+            return 1;
+        }
+        else {
+            sprintf(setpin,"%d",pin);
+            fprintf(set_export,setpin);
+        }
+        fclose(set_export);
+    }
+
     set_export = fopen (setpin, "w");
     if(set_export == NULL){
         printf ("open %s error\n",setpin);

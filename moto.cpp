@@ -15,13 +15,13 @@
 #include "gpio.h"
 #include "pwm.h"
 
-Gpio gpio_moto;
+//Gpio gpio_moto;
 Pwm pwm_f1c100s;
 
-void Moto::Moto_Init(void){
+Moto::Moto(void){
     
-    gpio_moto.gpio_init(&ena , 128 + 3, 1);//PE3
-	gpio_moto.gpio_init(&enb , 128 + 4, 1);//PE4
+    gpio_init(&ena , 128 + 3, 1);//PE3
+	gpio_init(&enb , 128 + 4, 1);//PE4
     write(ena,"1",1);
     write(enb,"1",1);
 
@@ -36,7 +36,55 @@ void Moto::Moto_Init(void){
     pwm_f1c100s.pwm_period(1, 20000000);
     pwm_f1c100s.pwm_duty_cycle(1, 1500000);
     pwm_f1c100s.pwm_enable(1);
+    printf("init moto gpio and pwm\n");
+}
 
+Moto::~Moto(void){
+    close(ena);
+    close(enb);
+    printf("close gpio\n");
+    //printf("disable pwm\n");
+}
+
+int Moto::gpio_init(int *fd, int pin, bool io){
+    FILE* set_export = NULL;
+
+    sprintf(setpin, "/sys/class/gpio/gpio%d/direction", pin);
+    if((access(setpin, F_OK)) == -1){//need creat 
+        set_export = fopen ("/sys/class/gpio/export", "w");
+        if(set_export == NULL){
+            printf ("Can't open /sys/class/gpio/export!\n");
+            return 1;
+        }
+        else {
+            sprintf(setpin,"%d",pin);
+            fprintf(set_export,setpin);
+        }
+        fclose(set_export);
+    }
+
+    set_export = fopen (setpin, "w");
+    if(set_export == NULL){
+        printf ("open %s error\n",setpin);
+        return 2;
+    }
+    else {
+        if(io){
+            fprintf(set_export,"out");
+        }else{
+            fprintf(set_export,"in");
+        }
+    }
+    fclose(set_export);
+
+    sprintf(setpin,"/sys/class/gpio/gpio%d/value",pin);
+    *fd = open (setpin, O_RDWR);
+    if(*fd <= 0){
+        printf ("can not open %s\n",setpin);
+        return 3;
+    }
+
+    return 0;
 }
 
 int Moto::go(int speed){

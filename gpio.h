@@ -3,8 +3,10 @@
 
 class Gpio
 {
-
 public:
+    Gpio();
+    ~Gpio();
+    int light(int leds, bool status);
     int setup_gpio(int pin);
     int set_gpio_out( int pin);
     int set_gpio_in(int pin);
@@ -14,7 +16,8 @@ public:
 
 private:
     char setpin[64] = {0};
-
+    int PE5 = -1;//PE5 = 32*4 + 5
+	int PA2 = -1;//PE5 = 32*0 + 2
 };
 
 #endif

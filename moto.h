@@ -4,11 +4,13 @@
 class Moto
 {
 public:
-   void Moto_Init(void);
+   Moto(void);
+   ~Moto(void);
    int go(int speed);
    int back(int speed);
    int stop(void);
    int servo(int angle);
+   int gpio_init(int *fd, int pin, bool io);
 
 private:
     char setpin[64] = {0};

@@ -15,17 +15,29 @@
 #include "pwm.h"
 #include "pstwo.h"
 #include "moto.h"
+#include "mem_gpio.h"
+
+using namespace std;
+
+static void sigint_handler(int sig)
+{
+    
+    cout << "--- quit the loop! ---" << endl;
+    exit(0);
+}
 
 int main(int argc, char *argv[]){
+/*
+	if (gpio_mmap())
+		return -1;
 
-	Gpio gpio_f1c100s;
+	f1c100s_gpio_set_pin_direction(2, 1);
+    f1c100s_gpio_set_pin_direction(128+5, 1);
 
-	int PE5 = -1;//PE5 = 32*4 + 5
-	int PA2 = -1;//PE5 = 32*0 + 2
-	gpio_f1c100s.gpio_init(&PE5 , 128 + 5, 1);
-	gpio_f1c100s.gpio_init(&PA2 , 2, 1);
-
-	bool status = 0;
+    f1c100s_gpio_set_pin_value(2, 1);
+    f1c100s_gpio_set_pin_value(128+5, 1);
+*/
+	//bool status = 0;
 
 	u_int8_t key = 0;
 	u_int8_t l_lx = 0,l_ly = 0,l_rx = 0,l_ry = 0;
@@ -35,14 +47,17 @@ int main(int argc, char *argv[]){
 	PS2_SetInit();
 
 	Moto moto;
-	moto.Moto_Init();
+
+	signal(SIGINT, sigint_handler);//信号处理
 
 	while(1){
 
 		key = PS2_DataKey();
 		if(key != 0)               
 		{
-			printf("key = %d\r\n",key);
+			if(key > 1)
+				printf("key = %d\r\n",key);
+
 			if(key == 12)
 			{
 				PS2_Vibration(0xFF,0x00);
@@ -69,45 +84,38 @@ int main(int argc, char *argv[]){
 		ly = PS2_AnologData(PSS_LY);
 		rx = PS2_AnologData(PSS_RX);
 		ry = PS2_AnologData(PSS_RY);
-		if(ry < 120)
-		{
+
+		if(ry < 120){
 			speed = (128 - ry)/128 * 1000000;
 			moto.go(speed);
 		}
-		else if(ry > 135)
-		{
+		else if(ry > 135){
 			speed = (ry -128)/128 * 1000000;
 			moto.back(speed);
 		}
-		else
-		{
+		else{
 			moto.stop();
 		}
-		if(l_lx != lx)
-		{
+		if(l_lx != lx){
 			l_lx = lx;
 			printf("LX = %d\r\n",lx);
 		}
-		if(l_ly != ly)
-		{
+		if(l_ly != ly){
 			l_ly = ly;
 			printf("LY = %d\r\n",ly);	
 		}
-		if(l_rx != rx)
-		{
+		if(l_rx != rx){
 			l_rx = rx;
 			printf("RX = %d\r\n",rx);
 		}
-		if(l_ry != ry)
-		{
+		if(l_ry != ry){
 			l_ry = ry;
 			printf("RY = %d\r\n",ry);
 		}
 
-		status = !status;
-		status == 0 ? write(PE5,"0",1) : write(PE5,"1",1);
-		status == 0 ? write(PA2,"1",1) : write(PA2,"0",1);
-		usleep(100000);
+		//status = !status;
+		//Gpio::light(0,status);
+		usleep(200000);
 	}
 
 	return 0;
