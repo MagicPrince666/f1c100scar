@@ -45,10 +45,10 @@ Gpio gpio_ps2;
 
 void PS2_Init(void)
 {
-	gpio_ps2.gpio_init(&ps2_data , 6*32, 0);	//PG0
-	gpio_ps2.gpio_init(&ps2_cmd , 6*32 + 1, 1);	//PG1
-	gpio_ps2.gpio_init(&ps2_att , 6*32 + 2, 1);	//PG2
-	gpio_ps2.gpio_init(&ps2_clk , 6*32 + 3, 1);	//PG3
+	gpio_ps2.gpio_init(&ps2_data , 6*32, 0);	//PG0 192
+	gpio_ps2.gpio_init(&ps2_cmd , 6*32 + 1, 1);	//PG1 193
+	gpio_ps2.gpio_init(&ps2_att , 6*32 + 2, 1);	//PG2 194
+	gpio_ps2.gpio_init(&ps2_clk , 6*32 + 3, 1);	//PG3 195
 	write(ps2_data,"1",1);
 	write(ps2_cmd,"0",1);
 	write(ps2_att,"1",1);
@@ -76,7 +76,7 @@ void PS2_Cmd(u_int8_t CMD)
 		delay_us(5);
 		write(ps2_clk,"1",1);
 	
-		read(ps2_data,&data, 1);
+		read(ps2_data, &data, 1);
 		if(data == '1')
 			Data[1] = ref|Data[1];
 	}

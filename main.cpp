@@ -27,16 +27,7 @@ static void sigint_handler(int sig)
 }
 
 int main(int argc, char *argv[]){
-/*
-	if (gpio_mmap())
-		return -1;
 
-	f1c100s_gpio_set_pin_direction(2, 1);
-    f1c100s_gpio_set_pin_direction(128+5, 1);
-
-    f1c100s_gpio_set_pin_value(2, 1);
-    f1c100s_gpio_set_pin_value(128+5, 1);
-*/
 	//bool status = 0;
 
 	u_int8_t key = 0;
@@ -77,6 +68,7 @@ int main(int argc, char *argv[]){
 				case 7:moto.servo(1500000);break;
 				case 6:moto.servo(2000000);break;
 				case 8:moto.servo(1000000);break;
+				default:break;
 			}
 		}
 		
