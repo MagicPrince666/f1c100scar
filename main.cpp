@@ -49,8 +49,11 @@ int main(int argc, char *argv[]){
 	Moto moto;
 	Gpio f1c100s;
 	int PA2 = f1c100s.gpio_init(2, 1);
+	int PE5 = f1c100s.gpio_init(128+5, 1);
 
 	signal(SIGINT, sigint_handler);//信号处理
+
+	cout << "--- version 1.1 ---" << endl;
 
 	while(1){
 
@@ -116,7 +119,7 @@ int main(int argc, char *argv[]){
 		}
 
 		status = !status;
-		f1c100s.set_gpio_value(PA2, status);
+		f1c100s.set_gpio_value(PE5, status);
 		usleep(200000);
 	}
 

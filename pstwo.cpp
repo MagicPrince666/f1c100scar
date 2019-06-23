@@ -46,7 +46,7 @@ Gpio gpio_ps2;
 void PS2_Init(void)
 {	
 	ps2_data = gpio_ps2.gpio_init(128 + 10, 0);	//PE10 138
-	ps2_cmd = gpio_ps2.gpio_init(128 + 8 + 1, 1);//PE8 136
+	ps2_cmd = gpio_ps2.gpio_init(128 + 8, 1);	//PE8 136
 	ps2_att = gpio_ps2.gpio_init(128 + 7, 1);	//PE7 135
 	ps2_clk = gpio_ps2.gpio_init(128 + 9, 1);	//PE9 137
 
