@@ -11,8 +11,14 @@
 #include <signal.h>
 #include <iostream>
 
+
 #include "pstwo.h"
+
+#ifdef SPI_HARD
+#include "spi.h"
+#else
 #include "gpio.h"
+#endif
 
 u_int16_t Handkey;
 u_int8_t Comd[2]={0x01,0x42};	
@@ -36,6 +42,7 @@ u_int16_t MASK[]={
     PSB_PINK
 };	//
 
+#ifndef SPI_HARD
 int ps2_ack = -1;
 int ps2_data = -1;
 int ps2_cmd = -1;
@@ -43,19 +50,27 @@ int ps2_att = -1;
 int ps2_clk = -1;
 
 Gpio gpio_ps2;
+#endif
 
 void PS2_Init(void)
 {
+#ifdef SPI_HARD
+	SPI_Open();//硬件SPI初始化
+#else
 	gpio_ps2.gpio_init(&ps2_ack , 0, 0);//PA0
 	gpio_ps2.gpio_init(&ps2_data , 128 + 10, 0);//PE10
 	gpio_ps2.gpio_init(&ps2_cmd , 128 + 8, 1);//PE8
 	gpio_ps2.gpio_init(&ps2_att , 128 + 7, 1);//PE7
-	gpio_ps2.gpio_init(&ps2_clk , 128 + 9, 1);//PE9									  
+	gpio_ps2.gpio_init(&ps2_clk , 128 + 9, 1);//PE9
+#endif							  
 }
 
 //
 void PS2_Cmd(u_int8_t CMD)
 {
+#ifdef SPI_HARD
+	write(g_SPI_Fd, &CMD, 1);
+#else
 	volatile u_int16_t ref=0x01;
 	Data[1] = 0;
 	for(ref=0x01;ref<0x0100;ref<<=1)
@@ -76,16 +91,17 @@ void PS2_Cmd(u_int8_t CMD)
 		if(data == '1')
 			Data[1] = ref|Data[1];
 	}
+#endif
 	delay_us(16);
 }
 
 
 u_int8_t PS2_RedLight(void)
 {
-	PS2_JOYPAD_ATT_0;
+//	PS2_JOYPAD_ATT_0;
 	PS2_Cmd(Comd[0]);  
 	PS2_Cmd(Comd[1]);  
-	PS2_JOYPAD_ATT_1;
+//	PS2_JOYPAD_ATT_1;
 	if( Data[1] == 0X73)   return 0 ;
 	else return 1;
 
@@ -93,6 +109,11 @@ u_int8_t PS2_RedLight(void)
 
 void PS2_ReadData(void)
 {
+#ifdef SPI_HARD
+	PS2_Cmd(Comd[0]);  
+	PS2_Cmd(Comd[1]);
+	read(g_SPI_Fd,&Data,2);
+#else
 	volatile u_int8_t byte=0;
 	volatile u_int16_t ref=0x01;
 
@@ -117,7 +138,8 @@ void PS2_ReadData(void)
 		}
         delay_us(16);
 	}
-	PS2_JOYPAD_ATT_1;	
+	PS2_JOYPAD_ATT_1;
+#endif	
 }
 
 
@@ -154,7 +176,7 @@ void PS2_ClearData()
 
 void PS2_Vibration(u_int8_t motor1, u_int8_t motor2)
 {
-	PS2_JOYPAD_ATT_0;
+//	PS2_JOYPAD_ATT_0;
 	delay_us(16);
   	PS2_Cmd(0x01);  //
 	PS2_Cmd(0x42);  //
@@ -165,26 +187,26 @@ void PS2_Vibration(u_int8_t motor1, u_int8_t motor2)
 	PS2_Cmd(0X00);
 	PS2_Cmd(0X00);
 	PS2_Cmd(0X00);
-	PS2_JOYPAD_ATT_1;
+//	PS2_JOYPAD_ATT_1;
 	delay_us(16);  
 }
 //short poll
 void PS2_ShortPoll(void)
 {
-	PS2_JOYPAD_ATT_0;
+//	PS2_JOYPAD_ATT_0;
 	delay_us(16);
 	PS2_Cmd(0x01);  
 	PS2_Cmd(0x42);  
 	PS2_Cmd(0X00);
 	PS2_Cmd(0x00);
 	PS2_Cmd(0x00);
-	PS2_JOYPAD_ATT_1;
+//	PS2_JOYPAD_ATT_1;
 	delay_us(16);	
 }
 
 void PS2_EnterConfing(void)
 {
-  PS2_JOYPAD_ATT_0;
+//	PS2_JOYPAD_ATT_0;
 	delay_us(16);
 	PS2_Cmd(0x01);  
 	PS2_Cmd(0x43);  
@@ -195,14 +217,14 @@ void PS2_EnterConfing(void)
 	PS2_Cmd(0X00);
 	PS2_Cmd(0X00);
 	PS2_Cmd(0X00);
-	PS2_JOYPAD_ATT_1;
+//	PS2_JOYPAD_ATT_1;
 	delay_us(16);
 }
 
 
 void PS2_TurnOnAnalogMode(void)
 {
-	PS2_JOYPAD_ATT_0;
+//	PS2_JOYPAD_ATT_0;
 	PS2_Cmd(0x01);  
 	PS2_Cmd(0x44);  
 	PS2_Cmd(0X00);
@@ -213,26 +235,26 @@ void PS2_TurnOnAnalogMode(void)
 	PS2_Cmd(0X00);
 	PS2_Cmd(0X00);
 	PS2_Cmd(0X00);
-	PS2_JOYPAD_ATT_1;
+//	PS2_JOYPAD_ATT_1;
 	delay_us(16);
 }
 
 void PS2_VibrationMode(void)
 {
-	PS2_JOYPAD_ATT_0;
+//	PS2_JOYPAD_ATT_0;
 	delay_us(16);
 	PS2_Cmd(0x01);  
 	PS2_Cmd(0x4D);  
 	PS2_Cmd(0X00);
 	PS2_Cmd(0x00);
 	PS2_Cmd(0X01);
-	PS2_JOYPAD_ATT_1;
+//	PS2_JOYPAD_ATT_1;
 	delay_us(16);	
 }
 //
 void PS2_ExitConfing(void)
 {
-    PS2_JOYPAD_ATT_0;
+//    PS2_JOYPAD_ATT_0;
 	delay_us(16);
 	PS2_Cmd(0x01);  
 	PS2_Cmd(0x43);  
@@ -243,7 +265,7 @@ void PS2_ExitConfing(void)
 	PS2_Cmd(0x5A);
 	PS2_Cmd(0x5A);
 	PS2_Cmd(0x5A);
-	PS2_JOYPAD_ATT_1;
+//	PS2_JOYPAD_ATT_1;
 	delay_us(16);
 }
 

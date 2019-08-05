@@ -3,6 +3,9 @@
 
 #include <sys/types.h>
 
+#define SPI_HARD
+
+#ifndef SPI_HARD
 extern int ps2_ack;
 extern int ps2_data;
 extern int ps2_cmd;
@@ -18,6 +21,7 @@ extern int ps2_clk;
 #define PS2_JOYPAD_CMND_0     write(ps2_cmd,"0",1)      //E8
 #define PS2_JOYPAD_ATT_0      write(ps2_att,"0",1)      //E7
 #define PS2_JOYPAD_CLOCK_0    write(ps2_clk,"0",1)      //E9
+#endif
 
 #define delay_us usleep
 

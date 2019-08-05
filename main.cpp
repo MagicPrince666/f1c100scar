@@ -15,6 +15,7 @@
 #include "pwm.h"
 #include "pstwo.h"
 #include "moto.h"
+#include "spi.h"
 
 int main(int argc, char *argv[]){
 
