@@ -70,6 +70,7 @@ void PS2_Cmd(u_int8_t CMD)
 {
 #ifdef SPI_HARD
 	write(g_SPI_Fd, &CMD, 1);
+	read(g_SPI_Fd, &Data[1], 1);
 #else
 	volatile u_int16_t ref=0x01;
 	Data[1] = 0;
@@ -110,9 +111,15 @@ u_int8_t PS2_RedLight(void)
 void PS2_ReadData(void)
 {
 #ifdef SPI_HARD
+	volatile u_int8_t byte=0;
 	PS2_Cmd(Comd[0]);  
 	PS2_Cmd(Comd[1]);
-	read(g_SPI_Fd,&Data,2);
+//	read(g_SPI_Fd,&Data,9);
+	for(byte = 2; byte < 9; byte++)
+	{
+		read(g_SPI_Fd, &Data[byte], 1);
+		delay_us(16);
+	}
 #else
 	volatile u_int8_t byte=0;
 	volatile u_int16_t ref=0x01;

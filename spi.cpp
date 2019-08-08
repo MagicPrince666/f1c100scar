@@ -16,9 +16,10 @@
 
 
 static const char *device = "/dev/spidev1.0";
-static uint8_t mode = 0; /* SPI通信使用全双工，设置CPOL＝0，CPHA＝0。 */
+static uint8_t mode = 2; /* SPI通信使用全双工，设置CPOL＝1，CPHA＝0。 */
 static uint8_t bits = 8; /* 8ｂiｔｓ读写，MSB first。*/
-static uint32_t speed = 2 * 1000 * 1000;/* 设置96M传输速度 */
+static uint32_t speed = 20 * 1000 * 1000;/* 设置96M传输速度 */
+int lsb = 1; /* LSB 低位先传 */
 int g_SPI_Fd = 0;
 
 
@@ -153,6 +154,9 @@ int SPI_Open(void)
     if (ret == -1)
         pabort("can't get bits per word");
 
+    ret = ioctl(fd, SPI_IOC_WR_LSB_FIRST, &lsb);
+    if (ret == -1)
+        pabort("can't set lsb");
 
     /*
     * max speed hz
